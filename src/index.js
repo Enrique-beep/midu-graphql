@@ -151,6 +151,11 @@ const typeDefs = gql`
     address: InputAddress
   }
 
+  input InputNewPhone {
+    username: String!
+    newPhone: String!
+  }
+
   type Query {
     personCount: Int!
     allPersons(phone: YesNo): [Person]!
@@ -159,6 +164,7 @@ const typeDefs = gql`
 
   type Mutation {
     addPerson(person: InputPerson!): Person
+    editPhoneNumber(data: InputNewPhone!): Person
   }
 `;
 
@@ -188,6 +194,16 @@ const resolvers = {
       const newPerson = {...person, id: persons.length + 1};
       persons.push(newPerson);
       return newPerson;
+    },
+    editPhoneNumber: (root, { data }) => {
+      const personIndex = persons.findIndex(p => p.username === data.username);
+      if (personIndex === -1) return null;
+
+      const person = persons[personIndex];
+      const updatedPerson = { ...person, phone: data.newPhone };
+      persons[personIndex] = updatedPerson;
+
+      return updatedPerson;
     },
   },
 };
