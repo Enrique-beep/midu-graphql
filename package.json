@@ -1,0 +1,29 @@
+{
+  "name": "midu-graphql",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Enrique-beep/midu-graphql.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Enrique-beep/midu-graphql/issues"
+  },
+  "homepage": "https://github.com/Enrique-beep/midu-graphql#readme",
+  "dependencies": {
+    "apollo-server": "^3.4.0",
+    "graphql": "^15.7.2"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.14"
+  }
+}
