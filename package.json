@@ -21,7 +21,8 @@
   "homepage": "https://github.com/Enrique-beep/midu-graphql#readme",
   "dependencies": {
     "apollo-server": "^3.4.0",
-    "graphql": "^15.7.2"
+    "graphql": "^15.7.2",
+    "uuid": "^8.3.2"
   },
   "devDependencies": {
     "nodemon": "^2.0.14"

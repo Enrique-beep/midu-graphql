@@ -1,4 +1,4 @@
-import { gql, ApolloServer } from 'apollo-server';
+import { gql, ApolloServer, UserInputError } from 'apollo-server';
 
 const persons = [
   {
@@ -11,10 +11,6 @@ const persons = [
       suite: "Apt. 556",
       city: "Gwenborough",
       zipcode: "92998-3874",
-      geo: {
-        lat: "-37.3159",
-        lng: "81.1496"
-      }
     },
     phone: "1-770-736-8031 x56442",
     website: "hildegard.org",
@@ -34,10 +30,6 @@ const persons = [
       suite: "Suite 879",
       city: "Wisokyburgh",
       zipcode: "90566-7771",
-      geo: {
-        lat: "-43.9509",
-        lng: "-34.4618"
-      }
     },
     phone: "010-692-6593 x09125",
     website: "anastasia.net",
@@ -57,10 +49,6 @@ const persons = [
       suite: "Suite 847",
       city: "McKenziehaven",
       zipcode: "59590-4157",
-      geo: {
-        lat: "-68.6102",
-        lng: "-47.0653"
-      }
     },
     phone: "1-463-123-4447",
     website: "ramiro.info",
@@ -80,10 +68,6 @@ const persons = [
       suite: "Apt. 692",
       city: "South Elvis",
       zipcode: "53919-4257",
-      geo: {
-        lat: "29.4572",
-        lng: "-164.2990"
-      }
     },
     phone: "493-170-9623 x156",
     website: "kale.biz",
@@ -103,10 +87,6 @@ const persons = [
       suite: "Suite 351",
       city: "Roscoeview",
       zipcode: "33263",
-      geo: {
-        lat: "-31.8129",
-        lng: "62.5342"
-      }
     },
     phone: "(254)954-1289",
     website: "demarco.info",
@@ -125,16 +105,11 @@ const typeDefs = gql`
     bs: String 
   }
 
-  type Geo { 
-    lat: String 
-    lng: String 
-  }
-
-  type Address { street: String
+  type Address { 
+    street: String
     suite: String
     city: String
     zipcode: String
-    geo: Geo 
   }
 
   type Person { 
@@ -148,10 +123,37 @@ const typeDefs = gql`
     address: Address 
   }
 
+  input InputCompany {
+    name: String 
+    catchPhrase: String 
+    bs: String
+  }
+
+  input InputAddress {
+    street: String
+    suite: String
+    city: String
+    zipcode: String
+  }
+
+  input InputPerson {
+    name: String!
+    username: String!
+    email: String!
+    phone: String
+    website: String
+    company: InputCompany
+    address: InputAddress
+  }
+
   type Query {
     personCount: Int!
     allPersons: [Person]!
     findPerson(name: String!): Person
+  }
+
+  type Mutation {
+    addPerson(person: InputPerson!): Person
   }
 `;
 
@@ -164,11 +166,24 @@ const resolvers = {
       return persons.find(person => person.name === name);
     },
   },
+  Mutation: {
+    addPerson: (root, { person }) => {
+      if (persons.find(p => p.name === person.name)) {
+        throw new UserInputError('Name must be unique', {
+          "invalidArgs": person.name,
+        });
+      }
+      const newPerson = {...person, id: persons.length + 1};
+      persons.push(newPerson);
+      return newPerson;
+    },
+  },
 };
 
 const server = new ApolloServer({
   typeDefs,
   resolvers,
+  cors: true,
 });
 
 server.listen().then(({ url }) => {
