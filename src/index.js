@@ -1,102 +1,5 @@
 import { gql, ApolloServer, UserInputError } from 'apollo-server';
-
-const persons = [
-  {
-    id: 1,
-    name: "Leanne Graham",
-    username: "Bret",
-    email: "Sincere@april.biz",
-    address: {
-      street: "Kulas Light",
-      suite: "Apt. 556",
-      city: "Gwenborough",
-      zipcode: "92998-3874",
-    },
-    phone: "1-770-736-8031 x56442",
-    website: "hildegard.org",
-    company: {
-      name: "Romaguera-Crona",
-      catchPhrase: "Multi-layered client-server neural-net",
-      bs: "harness real-time e-markets"
-    }
-  },
-  {
-    id: 2,
-    name: "Ervin Howell",
-    username: "Antonette",
-    email: "Shanna@melissa.tv",
-    address: {
-      street: "Victor Plains",
-      suite: "Suite 879",
-      city: "Wisokyburgh",
-      zipcode: "90566-7771",
-    },
-    phone: "010-692-6593 x09125",
-    website: "anastasia.net",
-    company: {
-      name: "Deckow-Crist",
-      catchPhrase: "Proactive didactic contingency",
-      bs: "synergize scalable supply-chains"
-    }
-  },
-  {
-    id: 3,
-    name: "Clementine Bauch",
-    username: "Samantha",
-    email: "Nathan@yesenia.net",
-    address: {
-      street: "Douglas Extension",
-      suite: "Suite 847",
-      city: "McKenziehaven",
-      zipcode: "59590-4157",
-    },
-    phone: "1-463-123-4447",
-    website: "ramiro.info",
-    company: {
-      name: "Romaguera-Jacobson",
-      catchPhrase: "Face to face bifurcated interface",
-      bs: "e-enable strategic applications"
-    }
-  },
-  {
-    id: 4,
-    name: "Patricia Lebsack",
-    username: "Karianne",
-    email: "Julianne.OConner@kory.org",
-    address: {
-      street: "Hoeger Mall",
-      suite: "Apt. 692",
-      city: "South Elvis",
-      zipcode: "53919-4257",
-    },
-    phone: "493-170-9623 x156",
-    website: "kale.biz",
-    company: {
-      name: "Robel-Corkery",
-      catchPhrase: "Multi-tiered zero tolerance productivity",
-      bs: "transition cutting-edge web services"
-    }
-  },
-  {
-    id: 5,
-    name: "Chelsey Dietrich",
-    username: "Kamren",
-    email: "Lucio_Hettinger@annie.ca",
-    address: {
-      street: "Skiles Walks",
-      suite: "Suite 351",
-      city: "Roscoeview",
-      zipcode: "33263",
-    },
-    phone: "(254)954-1289",
-    website: "demarco.info",
-    company: {
-      name: "Keebler LLC",
-      catchPhrase: "User-centric fault-tolerant solution",
-      bs: "revolutionize end-to-end systems"
-    }
-  }
-];
+import axios from 'axios';
 
 const typeDefs = gql`
   enum YesNo {
@@ -168,42 +71,66 @@ const typeDefs = gql`
   }
 `;
 
+const apiRestHandler = async ({ method, payload }) => {
+  switch (method.toLocaleUpperCase()) {
+    case 'GET': 
+      return await axios.get('http://localhost:3000/persons');
+    case 'POST':
+      return await axios.post('http://localhost:3000/persons', payload);
+    case 'PUT':
+      return await axios.put(`http://localhost:3000/persons/${payload.id}`, payload);
+    default: 
+      throw Error('There is no a valid method');
+  }
+};
+
 const resolvers = {
   Query: {
-    personCount: () => persons.length,
-    allPersons: (root, args) => {
-      if (!args.phone) return persons;
+    personCount: async () => {
+      const { data: personsFromRestApi } = await apiRestHandler({ method: 'GET' });
+      return personsFromRestApi.length;
+    },
+    allPersons: async (root, args) => {
+      const { data: personsFromRestApi } = await apiRestHandler({ method: 'GET' });
+      if (!args.phone) return personsFromRestApi;
 
       const byPhone = person => 
         args.phone === "YES" ? person.phone : !person.phone;
 
-      return persons.filter(byPhone);
+      return personsFromRestApi.filter(byPhone);
     },
-    findPerson: (root, args) => {
+    findPerson: async (root, args) => {
+      const { data: personsFromRestApi } = await apiRestHandler({ method: 'GET' });
       const { name } = args;
-      return persons.find(person => person.name === name);
+      return personsFromRestApi.find(person => person.name === name);
     },
   },
   Mutation: {
-    addPerson: (root, { person }) => {
-      if (persons.find(p => p.name === person.name)) {
+    addPerson: async (root, { person }) => {
+      const { data: personsFromRestApi } = await apiRestHandler({ method: 'GET' });
+
+      if (personsFromRestApi.find(p => p.name === person.name)) {
         throw new UserInputError('Name must be unique', {
           "invalidArgs": person.name,
         });
       }
-      const newPerson = {...person, id: persons.length + 1};
-      persons.push(newPerson);
+
+      const { data: newPerson } = await apiRestHandler({ method: 'POST', payload: person });
+
       return newPerson;
     },
-    editPhoneNumber: (root, { data }) => {
-      const personIndex = persons.findIndex(p => p.username === data.username);
+    editPhoneNumber: async (root, { data }) => {
+      const { data: personsFromRestApi } = await apiRestHandler({ method: 'GET' });
+
+      const personIndex = personsFromRestApi.findIndex(p => p.username === data.username);
       if (personIndex === -1) return null;
 
-      const person = persons[personIndex];
+      const person = personsFromRestApi[personIndex];
       const updatedPerson = { ...person, phone: data.newPhone };
-      persons[personIndex] = updatedPerson;
+      
+      const { data: newPerson } = await apiRestHandler({ method: 'PUT', payload: updatedPerson });
 
-      return updatedPerson;
+      return newPerson;
     },
   },
 };

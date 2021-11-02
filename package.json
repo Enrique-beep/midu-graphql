@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "start": "node src/index.js",
+    "start:api": "json-server --watch api/data.json",
     "dev": "nodemon src/index.js"
   },
   "repository": {
@@ -21,10 +22,12 @@
   "homepage": "https://github.com/Enrique-beep/midu-graphql#readme",
   "dependencies": {
     "apollo-server": "^3.4.0",
+    "axios": "^0.24.0",
     "graphql": "^15.7.2",
     "uuid": "^8.3.2"
   },
   "devDependencies": {
+    "json-server": "^0.17.0",
     "nodemon": "^2.0.14"
   }
 }
